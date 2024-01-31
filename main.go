@@ -7,11 +7,6 @@ import (
 	engine "go-expression-engine/lib"
 )
 
-type RequestBody struct {
-	Exp    map[string]string `json:"exp"`
-	Config map[string]int    `json:"config"`
-}
-
 
 func main() {
 	router := gin.Default()
@@ -31,8 +26,6 @@ func main() {
 		// Print the parsed JSON body
 		fmt.Printf("Received JSON body: %+v\n", requestBody)
 
-		// You can access the parsed JSON body using requestBody.Exp and requestBody.Config
-
 		result, err := engine.CalcExpressions(requestBody.Exp)
 
 		//response result 
@@ -40,7 +33,6 @@ func main() {
 			c.JSON(http.StatusInternalServerError, gin.H{"message": "error", "error": err.Error()})
 			return
 		}
-
 
 		// Send the result as a JSON string to the client
 		c.JSON(http.StatusOK, gin.H{"message": "success", "result": result})
