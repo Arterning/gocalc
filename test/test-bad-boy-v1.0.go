@@ -4,31 +4,49 @@ import (
 	"fmt"
 	"github.com/Knetic/govaluate"
 	"sync"
+	"strings"
 )
 
-var expressions = map[string]string{
-	"ji":"32+3",
-	"f": "9+c",
-	"c": "32+3",
-	"a": "c+3",
-	"b": "a/2",
-	"dab":"b+234/3",
-	"asset":"234+234/34",
-	"shareRatio":"32/23 + 56",
+func extractDependencies(expr string, expressions map[string]string) []string {
+	var dependencies []string
+
+	for key := range expressions {
+		if strings.Contains(expr, key) {
+			dependencies = append(dependencies, key)
+		}
+	}
+
+	return dependencies
 }
 
-//build dependency graph
-var dependencyGraph = map[string][]string{
-	"f": {"c"},
-	"c": {},
-	"a": {"c"},
-	"b": {"a"},
-}
 
 func main() {
+
 	evaluatedValues := make(map[string]interface{})
 	var wg sync.WaitGroup
 	var mu sync.Mutex
+
+	var expressions = map[string]string{
+		"ji":"32+3",
+		"f": "9+c",
+		"c": "32+3",
+		"a": "c+3",
+		"b": "a/2",
+		"dab":"b+234/3",
+		"asset":"234+234/34",
+		"shareRatio":"32/23 + 56",
+	}
+
+	//build dependency graph
+	dependencyGraph := make(map[string][]string)
+
+	for target, expr := range expressions {
+		deps := extractDependencies(expr, expressions)
+		dependencyGraph[target] = deps
+	}
+
+	fmt.Printf("Dependency Graph: %v\n", dependencyGraph)
+
 
 	for expr := range expressions {
 		// if expr has no dependencys, evaluate it immediately
@@ -46,7 +64,8 @@ func main() {
 				mu.Unlock()
 			}(expr)
 		} else {
-			result, err := evaluateExpressionWithDependencies(expr, expressions[expr], evaluatedValues, &mu)
+			result, err := evaluateExpressionWithDependencies(expr, expressions[expr], evaluatedValues, &mu,
+				expressions, dependencyGraph)
 			if err != nil {
 				fmt.Printf("Error evaluating expression %s: %v\n", expr, err)
 				return
@@ -82,11 +101,17 @@ func evaluateExpression(expr string) (interface{}, error) {
 }
 
 
-func evaluateExpressionWithDependencies(exprID, expr string, evaluated map[string]interface{}, mu *sync.Mutex) (interface{}, error) {
+func evaluateExpressionWithDependencies(exprID, 
+	expr string,
+	evaluated map[string]interface{},
+	mu *sync.Mutex,
+	expressions map[string]string,
+	dependencyGraph map[string][]string) (interface{}, error) {
 	depValues := make(map[string]interface{})
 	for _, dep := range dependencyGraph[exprID] {
 		if evaluated[dep] == nil {
-			value, _ := evaluateExpressionWithDependencies(dep, expressions[dep], evaluated, mu)
+			value, _ := evaluateExpressionWithDependencies(dep, expressions[dep], evaluated, mu,
+				expressions, dependencyGraph)
 			mu.Lock()
 			evaluated[dep] = value
 			mu.Unlock()
