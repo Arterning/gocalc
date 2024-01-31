@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	expression, err := govaluate.NewEvaluableExpression("a + b")
+	expression, err := govaluate.NewEvaluableExpression("a + b - c/1.8")
 	if err != nil {
 		fmt.Println("Error creating expression:", err)
 		return
@@ -15,6 +15,7 @@ func main() {
 	parameters := make(map[string]interface{})
 	parameters["a"] = 10
 	parameters["b"] = 20
+	parameters["c"] = 6
 
 	result, err := expression.Evaluate(parameters)
 	if err != nil {

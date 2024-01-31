@@ -57,17 +57,13 @@ func evaluateExpression(expr string, variables []Variable) (string, error) {
 	}
 
    
-    //if val is a+b, we should find a and b in the variables array
-    //and assign them to the parameters map.
-    variablesMap := make(map[string]string)
+    variablesMap := make(map[string]interface{})
     for _, v := range variables {
-        value, err := strconv.ParseFloat(v.Value, 64)\
-        variablesMap[v.Name] = value
+		//Cast v to float
+		v.Value = strconv.FormatFloat(v.Value, 'f', -1, 64)
+        variablesMap[v.Name] = v
     }
 
-    // parameters := make(map[string]interface{})
-	// parameters["a"] = 10
-	// parameters["b"] = 20
 
 	result, err := val.Evaluate(variablesMap)
     

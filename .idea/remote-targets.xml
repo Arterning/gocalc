@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RemoteTargetsManager">
+    <targets>
+      <target name="WSL - Ubuntu" type="wsl" uuid="60dd1c1c-5035-4aa4-b122-ea1d65a15a89">
+        <config>
+          <option name="distributionMsId" value="Ubuntu" />
+          <option name="projectRootOnTarget" value="/mnt/c/Program Files/JetBrains/GoLand 2022.3.4/jbr/bin&#10;/go-expression-engine" />
+        </config>
+        <ContributedStateBase type="GoLanguageRuntime">
+          <config>
+            <option name="goPath" value="/home/ning/go" />
+            <option name="goRoot" value="/usr/local/go/bin/go" />
+            <option name="goVersion" value="go1.21.6 linux/amd64" />
+          </config>
+        </ContributedStateBase>
+      </target>
+    </targets>
+  </component>
+</project>
