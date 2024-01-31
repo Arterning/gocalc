@@ -3,17 +3,15 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"fmt"
+	engine "go-expression-engine/lib"
 )
 
-type Variable struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+type RequestBody struct {
+	Exp    map[string]string `json:"exp"`
+	Config map[string]int    `json:"config"`
 }
 
-type ExpressionRequest struct {
-	Exp []Variable `json:"exp"`
-	J   int        `json:"j"`
-}
 
 func main() {
 	router := gin.Default()
@@ -24,52 +22,29 @@ func main() {
 
 
     router.POST("/evaluate", func(c *gin.Context) {
-		var req ExpressionRequest
-		if err := c.BindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		var requestBody RequestBody
+		if err := c.BindJSON(&requestBody); err != nil {
+			c.JSON(400, gin.H{"error": "Failed to parse request body as JSON"})
 			return
 		}
 
-		var result []Variable
-		for _, exp := range req.Exp {
-			value, err := evaluateExpression(exp.Value, req.Exp)
-			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-				return
-			}
-			result = append(result, Variable{Name: exp.Name, Value: value})
+		// Print the parsed JSON body
+		fmt.Printf("Received JSON body: %+v\n", requestBody)
+
+		// You can access the parsed JSON body using requestBody.Exp and requestBody.Config
+
+		result, err := engine.CalcExpressions(requestBody.Exp)
+
+		//response result 
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "error", "error": err.Error()})
+			return
 		}
-		c.JSON(http.StatusOK, gin.H{"out": result})
+
+
+		// Send the result as a JSON string to the client
+		c.JSON(http.StatusOK, gin.H{"message": "success", "result": result})
 	})
 
 	router.Run(":8080")
-}
-
-
-func evaluateExpression(expr string, variables []Variable) (string, error) {
-	for _, v := range variables {
-		expr = strings.Replace(expr, v.Name, v.Value, -1)
-	}
-	val, err := govaluate.NewEvaluableExpression(expr)
-	if err != nil {
-		log.Println("Error creating expression")
-		return "", err
-	}
-
-   
-    variablesMap := make(map[string]interface{})
-    for _, v := range variables {
-		//Cast v to float
-		v.Value = strconv.FormatFloat(v.Value, 'f', -1, 64)
-        variablesMap[v.Name] = v
-    }
-
-
-	result, err := val.Evaluate(variablesMap)
-    
-	if err != nil {
-		log.Println("Error evaluating expression")
-		return "", err
-	}
-	return strconv.FormatFloat(result.(float64), 'f', -1, 64), nil
 }
