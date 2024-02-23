@@ -7,9 +7,14 @@ Evaluating arbitrary C-like artithmetic/string expressions concurrently and prov
 ## How to use
 We can use j param to control the routine numbers
  
-```json
+```bash
 POST http://localhost:8080/evaluate
 Content-Type: application/json
+```
+
+Request body
+
+```json
 
 {
     "exp": {
